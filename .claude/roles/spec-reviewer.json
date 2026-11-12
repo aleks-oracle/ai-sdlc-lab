@@ -1,0 +1,16 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyRead": [
+        "./ledger-core",
+        "./ledger-app",
+        "./blackbox-tests",
+        "./docs",
+        "~/.m2"
+      ]
+    }
+  }
+}

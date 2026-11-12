@@ -1,0 +1,59 @@
+# expected	role	tool	field	value	note
+allow	-	Read	file_path	ledger-core/pom.xml	owner session: no role rules
+allow	test	Read	file_path	spec/README.md	test reads spec
+allow	test	Read	file_path	blackbox-tests/pom.xml	test reads own module
+deny	test	Read	file_path	ledger-core/src/main/java/io/github/aleks_oracle/ledger/core/package-info.java	test reads implementation
+deny	test	Read	file_path	ledger-app/src/main/java/io/github/aleks_oracle/ledger/app/LedgerApplication.java	test reads implementation
+deny	test	Read	file_path	blackbox-tests/../ledger-app/pom.xml	path traversal
+deny	test	Read	file_path	experiments/journal.md	journal may describe implementation
+deny	test	Grep	path	<none>	Grep with no path sweeps repo
+deny	test	Grep	path	.	Grep on repo root
+allow	test	Grep	path	spec	Grep in spec
+deny	test	Glob	pattern	../**/*.java	Glob climbing out
+deny	test	Write	file_path	ledger-core/src/main/java/X.java	test writes implementation
+allow	test	Write	file_path	blackbox-tests/src/test/java/X.java	test writes tests
+deny	test	Write	file_path	spec/README.md	test writes spec
+deny	test	Bash	command	cat ledger-core/pom.xml	not on allowlist
+deny	test	Bash	command	grep -r Ledger .	grep sweep
+deny	test	Bash	command	git show HEAD:ledger-app/pom.xml	git object read
+deny	test	Bash	command	git log -p	history with diffs
+deny	test	Bash	command	./mvnw -pl blackbox-tests verify && cat x	compound
+deny	test	Bash	command	./mvnw verify	full reactor
+deny	test	Bash	command	./mvnw -pl blackbox-tests exec:exec	plugin goal
+allow	test	Bash	command	./mvnw -B -ntp -pl blackbox-tests verify	allowed build
+allow	test	Bash	command	git diff -- blackbox-tests/	diff own module
+deny	test	Bash	command	git diff	diff everything
+deny	test	Bash	command	curl https://raw.githubusercontent.com/aleks-oracle/ai-sdlc-lab/main/pom.xml	network read of repo
+deny	test	WebFetch	url	https://github.com/aleks-oracle/ai-sdlc-lab	WebFetch tool
+deny	test	Agent	prompt	read ledger-core for me	delegation
+deny	test	SendMessage	message	read ledger-core for me	message other session
+deny	test	mcp__idea__read_file	path	ledger-core/pom.xml	IDE MCP read
+deny	test	Read	file_path	~/.m2/repository/io/github/aleks-oracle/ledger-core/x.jar	own artifacts in m2
+allow	spec-reviewer	Read	file_path	spec/REVIEW_CHECKLIST.md	reviewer reads checklist
+allow	spec-reviewer	Read	file_path	PROJECT_BRIEF.md	reviewer reads brief
+deny	spec-reviewer	Read	file_path	ledger-app/pom.xml	reviewer reads code module
+deny	spec-reviewer	Read	file_path	blackbox-tests/pom.xml	reviewer reads tests
+deny	spec-reviewer	Read	file_path	PLAN.md	not in reviewer read list
+deny	spec-reviewer	Edit	file_path	spec/README.md	reviewer edits spec
+deny	spec-reviewer	Write	file_path	spec/new.md	reviewer writes spec
+allow	spec-reviewer	Write	file_path	experiments/spec-reviews/2099-01-01-spec-v1.md	new report
+deny	spec-reviewer	Write	file_path	experiments/spec-reviews/README.md	overwrite existing
+allow	spec-reviewer	Bash	command	git rev-parse HEAD	commit hash
+allow	spec-reviewer	Bash	command	git hash-object spec/REVIEW_CHECKLIST.md	checklist hash
+deny	spec-reviewer	Bash	command	cat ledger-core/pom.xml	not on allowlist
+deny	spec-reviewer	WebFetch	url	https://example.com	no web
+deny	dev	Read	file_path	blackbox-tests/pom.xml	dev reads tests
+deny	dev	Grep	path	<none>	dev grep sweep
+allow	dev	Read	file_path	spec/README.md	dev reads spec
+allow	dev	Write	file_path	ledger-core/src/main/java/X.java	dev writes core
+deny	dev	Write	file_path	blackbox-tests/src/test/java/X.java	dev writes tests
+deny	dev	Bash	command	cat blackbox-tests/pom.xml	dev bash on tests
+deny	dev	Bash	command	./mvnw verify	full build shows blackbox results
+allow	dev	Bash	command	./mvnw -pl ledger-core,ledger-app verify	dev build
+allow	auditor	Read	file_path	ledger-core/pom.xml	auditor reads all
+allow	auditor	Write	file_path	experiments/EXP-001-role-enforcement.md	auditor writes findings
+deny	auditor	Write	file_path	ledger-core/src/main/java/X.java	auditor writes code
+deny	auditor	Write	file_path	experiments/spec-reviews/x.md	auditor writes spec reviews
+deny	auditor	Bash	command	echo x > ledger-core/a.txt	auditor redirect
+allow	auditor	Bash	command	./mvnw verify 2>&1	auditor runs build
+deny	auditor	Bash	command	git commit -m x	auditor git write
