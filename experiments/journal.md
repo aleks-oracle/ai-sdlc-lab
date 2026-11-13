@@ -54,3 +54,28 @@ Newest entry at the bottom. Each entry: done, broke, decisions (with reasons), n
 - Owner reviews the PR. `gh` is not installed, so the PR is not opened yet.
 - Run EXP-001 in fresh role sessions.
 - Step 3: propose the CI workflow (build, protected-path check, test-integrity check).
+
+---
+
+## 2026-11-13 — PR #1 review changes
+
+**Done**
+- PR #1 opened (`gh` installed and authenticated by the owner; `gh auth setup-git` set gh as the git credential helper).
+- Java packages renamed `io.github.aleks_oracle.*` → `io.github.aleksai.*` (owner preference). The groupId stays
+  `io.github.aleks-oracle`. Build green, role-guard unit check 58/58.
+- `PROJECT_BRIEF.md` is now local only (gitignored). The PR branch was rewritten with `git filter-branch` so that
+  no commit contains it, then force-pushed (owner decision). Content check: the rewritten branch differs from the
+  old one only by the removed brief and the `.gitignore` line.
+
+**Broke / surprises**
+- `git filter-branch` deleted the working copy of `PROJECT_BRIEF.md` when it checked out the rewritten head (the
+  file went from tracked to absent). It was restored from a backup made before the rewrite and compared byte for byte.
+  Lesson: back up untracked-to-be files before any history rewrite.
+- The old commit with the brief may stay visible on GitHub for a while through the PR's "force-pushed" timeline entry.
+
+**Decisions**
+- Brief not published (owner). Consequence: fresh clones and CI do not have it, while `CLAUDE.md`, the agents and
+  `spec/REVIEW_CHECKLIST.md` still refer to it.
+
+**Next**
+- Owner review of PR #1; Step 3 CI proposal; run EXP-001.
