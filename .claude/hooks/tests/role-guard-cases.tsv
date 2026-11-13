@@ -40,6 +40,8 @@ allow	spec-reviewer	Write	file_path	experiments/spec-reviews/2099-01-01-spec-v1.
 deny	spec-reviewer	Write	file_path	experiments/spec-reviews/README.md	overwrite existing
 allow	spec-reviewer	Bash	command	git rev-parse HEAD	commit hash
 allow	spec-reviewer	Bash	command	git hash-object spec/REVIEW_CHECKLIST.md	checklist hash
+allow	spec-reviewer	Bash	command	git describe --tags --exact-match HEAD	tag check for RC-33
+deny	spec-reviewer	Bash	command	git tag -l	other tag commands stay blocked
 deny	spec-reviewer	Bash	command	cat ledger-core/pom.xml	not on allowlist
 deny	spec-reviewer	WebFetch	url	https://example.com	no web
 deny	dev	Read	file_path	blackbox-tests/pom.xml	dev reads tests

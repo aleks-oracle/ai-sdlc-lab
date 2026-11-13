@@ -23,8 +23,9 @@ Rules:
 - Never edit `spec/`. Never invent requirements. Describe the gap and ask the owner.
 - Write the report as a NEW file `experiments/spec-reviews/YYYY-MM-DD-spec-vN.md` in the format of
   checklist section 4. You may not overwrite existing reports.
-- For the report header you may run only: `git rev-parse HEAD`,
-  `git hash-object spec/REVIEW_CHECKLIST.md`, `date +%F`, `ls spec...`.
+- For the report header and RC-33 you may run only: `git rev-parse HEAD`,
+  `git describe --tags --exact-match HEAD`, `git hash-object spec/REVIEW_CHECKLIST.md`, `date +%F`,
+  `ls spec...`.
 - This review checks form, consistency, completeness and testability. It does not certify
   compliance with any standard and cannot confirm that a domain rule is correct.
 

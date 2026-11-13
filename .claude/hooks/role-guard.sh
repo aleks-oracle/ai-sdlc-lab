@@ -216,13 +216,13 @@ check_bash_test() {
 check_bash_reviewer() {
   local c=$1
   case "$c" in
-    "git rev-parse HEAD"|"git rev-parse --short HEAD"|"git hash-object spec/REVIEW_CHECKLIST.md"|"date"|"date +%F") return 0 ;;
+    "git rev-parse HEAD"|"git rev-parse --short HEAD"|"git describe --tags --exact-match HEAD"|"git hash-object spec/REVIEW_CHECKLIST.md"|"date"|"date +%F") return 0 ;;
     "ls spec"*|"ls experiments/spec-reviews"*)
       local toks; read -ra toks <<<"$c"
       all_paths_under REVIEWER_READ "${toks[@]:1}" || deny "ls: only spec/ or experiments/spec-reviews/"
       return 0 ;;
   esac
-  deny "command not on the spec-reviewer allowlist (git rev-parse HEAD, git hash-object spec/REVIEW_CHECKLIST.md, ls spec, date)"
+  deny "command not on the spec-reviewer allowlist (git rev-parse HEAD, git describe --tags --exact-match HEAD, git hash-object spec/REVIEW_CHECKLIST.md, ls spec, date)"
 }
 
 check_bash() {
