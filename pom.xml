@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Root POM: parent of all modules and the reactor (aggregator).
+
+  Why we do NOT inherit from spring-boot-starter-parent (see docs/adr/0001):
+  - ledger-core and blackbox-tests must stay free of Spring.
+  - One root POM holds the shared build rules (Java 25, encoding, enforcer).
+  Instead we import the Spring Boot BOM below. A BOM only manages versions;
+  it does not add any dependency to a module.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.github.aleks-oracle</groupId>
+    <artifactId>ledger-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>ai-sdlc-lab :: parent</name>
+    <description>Learning experiment: AI-driven SDLC around a small double-entry ledger service.</description>
+
+    <modules>
+        <module>ledger-core</module>
+        <module>ledger-app</module>
+        <module>blackbox-tests</module>
+    </modules>
+
+    <properties>
+        <!-- Java and encoding: the Boot parent would set these for us; without it we set them explicitly -->
+        <java.version>25</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <!-- keep method parameter names in bytecode (Spring uses them, e.g. for constructor binding) -->
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Versions (checked against Java 25 on 2026-11-12, see experiments/journal.md) -->
+        <spring-boot.version>4.1.2</spring-boot.version>
+        <!-- plugin versions match the ones the Spring Boot 4.1.2 BOM was tested with -->
+        <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
+        <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.6</maven-failsafe-plugin.version>
+        <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
+        <maven-install-plugin.version>3.1.4</maven-install-plugin.version>
+        <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+        <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
+
+        <!--
+          Enforcer rule switches. Default is ON for every module (false = do not skip).
+          Only ledger-app may switch them off (it is the Spring module and depends on ledger-core).
+          PROTECTED: see CLAUDE.md. Step 3 CI will check that no other module changes them.
+        -->
+        <ledger.rules.no-spring.skip>false</ledger.rules.no-spring.skip>
+        <ledger.rules.no-sut-modules.skip>false</ledger.rules.no-sut-modules.skip>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Versions only (JUnit 6.0.3, AssertJ 3.27.7, Spring, ...). Adds no dependencies. -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.aleks-oracle</groupId>
+                <artifactId>ledger-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${maven-clean-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven-failsafe-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>${maven-install-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${maven-deploy-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <!--
+              ===== ENFORCER RULES — PROTECTED (CLAUDE.md "Protected paths") =====
+              These rules turn the architecture in PROJECT_BRIEF section 4 into build failures.
+              Do not weaken, skip or remove them without explicit owner approval.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
+                <executions>
+                    <!-- All modules: toolchain baseline -->
+                    <execution>
+                        <id>baseline</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[25,)</version>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>[3.9,)</version>
+                                </requireMavenVersion>
+                                <banDuplicatePomDependencyVersions/>
+                            </rules>
+                        </configuration>
+                    </execution>
+                    <!-- ledger-core and blackbox-tests: no Spring at all (direct or transitive) -->
+                    <execution>
+                        <id>no-spring</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${ledger.rules.no-spring.skip}</skip>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>org.springframework*</exclude>
+                                    </excludes>
+                                    <message>Spring is allowed only in ledger-app (PROJECT_BRIEF section 4).</message>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                    <!-- blackbox-tests (and ledger-core): must not depend on the system under test -->
+                    <execution>
+                        <id>no-sut-modules</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${ledger.rules.no-sut-modules.skip}</skip>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>io.github.aleks-oracle:ledger-core</exclude>
+                                        <exclude>io.github.aleks-oracle:ledger-app</exclude>
+                                    </excludes>
+                                    <message>Only ledger-app may depend on ledger-core; blackbox-tests sees only spec/ and HTTP (PROJECT_BRIEF sections 4-5).</message>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- ===== END ENFORCER RULES ===== -->
+        </plugins>
+    </build>
+</project>

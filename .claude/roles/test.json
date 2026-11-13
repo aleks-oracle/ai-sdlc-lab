@@ -1,0 +1,21 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyRead": [
+        "./ledger-core/src",
+        "./ledger-core/target",
+        "./ledger-app/src",
+        "./ledger-app/target",
+        "./experiments",
+        "~/.m2/repository/io/github/aleks-oracle"
+      ],
+      "allowWrite": ["~/.m2"]
+    },
+    "network": {
+      "allowedDomains": ["repo.maven.apache.org", "repo1.maven.org"]
+    }
+  }
+}
