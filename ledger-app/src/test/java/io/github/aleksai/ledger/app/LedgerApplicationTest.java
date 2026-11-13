@@ -1,4 +1,4 @@
-package io.github.aleks_oracle.ledger.app;
+package io.github.aleksai.ledger.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

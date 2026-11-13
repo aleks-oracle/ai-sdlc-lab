@@ -66,6 +66,6 @@ No implementation or test for a requirement until its status is `Ready`: owner w
 - `spec/` requirements (conventions in `spec/README.md`), `ledger-core/` domain (no Spring),
   `ledger-app/` Spring Boot 4.1.2, `blackbox-tests/` HTTP tests, `experiments/` evidence,
   `docs/adr/` decisions.
-- Packages: `io.github.aleks_oracle.ledger.{core,app,blackbox}` (groupId `io.github.aleks-oracle`;
-  `-` is not allowed in Java package names, so it becomes `_`).
+- Packages: `io.github.aleksai.ledger.{core,app,blackbox}`. Maven groupId: `io.github.aleks-oracle`
+  (matches the GitHub account).
 - Current stage and next steps: `PLAN.md`.

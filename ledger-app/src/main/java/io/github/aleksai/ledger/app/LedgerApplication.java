@@ -1,4 +1,4 @@
-package io.github.aleks_oracle.ledger.app;
+package io.github.aleksai.ledger.app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

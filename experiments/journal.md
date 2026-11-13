@@ -37,8 +37,8 @@ Newest entry at the bottom. Each entry: done, broke, decisions (with reasons), n
 
 **Decisions (owner, this session)**
 - Boot 4.1.2 in ledger-app now, only an empty app + context-loads test.
-- groupId `io.github.aleks-oracle`; packages `io.github.aleks_oracle.ledger.*` (`-` is illegal in Java packages;
-  the JLS convention is `_`).
+- groupId `io.github.aleks-oracle`. Java packages were first derived from the username; the owner changed them to
+  `io.github.aleksai.ledger.*` on 2026-11-13 (see next entry).
 - IDs `REQ-<AREA>-<NNN>`, `INV-<NNN>`, never reused or renumbered. Tag vs annotation: Stage 3.
 - Enforcer rules in the root POM, protected.
 

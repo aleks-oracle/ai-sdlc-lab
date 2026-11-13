@@ -2,8 +2,8 @@
 allow	-	Read	file_path	ledger-core/pom.xml	owner session: no role rules
 allow	test	Read	file_path	spec/README.md	test reads spec
 allow	test	Read	file_path	blackbox-tests/pom.xml	test reads own module
-deny	test	Read	file_path	ledger-core/src/main/java/io/github/aleks_oracle/ledger/core/package-info.java	test reads implementation
-deny	test	Read	file_path	ledger-app/src/main/java/io/github/aleks_oracle/ledger/app/LedgerApplication.java	test reads implementation
+deny	test	Read	file_path	ledger-core/src/main/java/io/github/aleksai/ledger/core/package-info.java	test reads implementation
+deny	test	Read	file_path	ledger-app/src/main/java/io/github/aleksai/ledger/app/LedgerApplication.java	test reads implementation
 deny	test	Read	file_path	blackbox-tests/../ledger-app/pom.xml	path traversal
 deny	test	Read	file_path	experiments/journal.md	journal may describe implementation
 deny	test	Grep	path	<none>	Grep with no path sweeps repo

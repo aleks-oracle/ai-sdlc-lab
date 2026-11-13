@@ -4,4 +4,4 @@
  * <p>Empty in Stage 1. Domain code is written in Stage 2, only for requirements in {@code spec/}
  * with status {@code Ready}.
  */
-package io.github.aleks_oracle.ledger.core;
+package io.github.aleksai.ledger.core;
