@@ -157,32 +157,23 @@ check_write() {  # $1 = raw path
 }
 
 # ---------- Bash ----------
-
-SAFE_TOKEN='^[A-Za-z0-9._/,:=@#*+-]+$'
-
-all_paths_under() {  # all_paths_under <prefix-array-name> tokens...
-  local arr=$1; shift
-  local t r
-  for t in "$@"; do
-    [[ "$t" =~ $SAFE_TOKEN ]] || return 1
-    r=$(relpath "$t")
-    eval "under \"\$r\" \"\${${arr}[@]}\"" || return 1
-  done
-  return 0
-}
+# test and spec-reviewer: EXACT commands only (plus a strictly tokenised ./mvnw and one commit form).
+# No prefix patterns: the hook checks text before the shell expands globs, so any free path argument
+# can be turned into a path outside the allowlist (e.g. "spec/*/../../ledger-core").
+# Use the Read/Glob/Grep tools (path-checked) to explore files.
 
 check_bash_test() {
   local c=$1 toks t i has_pl=0 has_phase=0
-  read -ra toks <<<"$c"
   case "$c" in
     "./mvnw "*)
+      read -ra toks <<<"$c"
       i=1
       while [ $i -lt ${#toks[@]} ]; do
         t=${toks[$i]}
         case "$t" in
           -B|-q|-e|-o|-ntp|--batch-mode|--quiet|--errors|--offline|--no-transfer-progress) ;;
           -pl) i=$((i+1)); [ "${toks[$i]:-}" = blackbox-tests ] || deny "mvnw for test: only '-pl blackbox-tests'"; has_pl=1 ;;
-          -D*) [[ "$t" =~ ^-D[A-Za-z0-9._-]+(=[A-Za-z0-9._,#*-]*)?$ ]] || deny "mvnw for test: unsupported property '$t'" ;;
+          -D*) [[ "$t" =~ ^-D[A-Za-z0-9._-]+(=[A-Za-z0-9._,#-]*)?$ ]] || deny "mvnw for test: unsupported property '$t'" ;;
           clean|validate|compile|test-compile|test|verify) has_phase=1 ;;
           *) deny "mvnw for test: '$t' not allowed (lifecycle phases only)" ;;
         esac
@@ -190,39 +181,25 @@ check_bash_test() {
       done
       [ $has_pl = 1 ] && [ $has_phase = 1 ] || deny "mvnw for test needs '-pl blackbox-tests' and a lifecycle phase"
       return 0 ;;
-    "git status"|"git status -s"|"git status --short"|"git status -sb") return 0 ;;
-    "git diff "*|"git add "*|"ls"|"ls "*)
-      local args=() seen_dd=0
-      for t in "${toks[@]:2}"; do
-        case "$t" in
-          --) seen_dd=1 ;;
-          -*) [[ "$t" =~ ^(--stat|--cached|--staged|--name-only|-l|-la|-a)$ ]] || deny "flag '$t' not allowed" ;;
-          *) args+=("$t") ;;
-        esac
-      done
-      [ "${toks[0]}" = ls ] && args=() && for t in "${toks[@]:1}"; do case "$t" in -*) ;; *) args+=("$t") ;; esac; done
-      [ ${#args[@]} -gt 0 ] || deny "give explicit paths under spec/ or blackbox-tests/"
-      if [ "${toks[1]:-}" = add ]; then
-        all_paths_under TEST_WRITE "${args[@]}" || deny "git add: only paths under blackbox-tests/"
-      else
-        all_paths_under TEST_READ "${args[@]}" || deny "only paths the test role may read"
-      fi
-      return 0 ;;
-    "git commit -m "*|"git commit -q -m "*) return 0 ;;
+    "git status"|"git status -s"|"git status --short"|"git status -sb"|\
+    "git diff -- blackbox-tests"|"git diff --stat -- blackbox-tests"|"git diff --cached -- blackbox-tests"|\
+    "git diff -- spec"|"git diff --stat -- spec"|\
+    "git add blackbox-tests"|\
+    "ls blackbox-tests"|"ls spec") return 0 ;;
   esac
-  deny "command not on the test role allowlist (see .claude/hooks/role-guard.sh)"
+  # One commit form: a double-quoted message and nothing after it (no -a, --dry-run, -v, paths, ...).
+  local commit_re='^git commit -m "[^"$\\]*"$'
+  [[ "$c" =~ $commit_re ]] && return 0
+  deny "command not on the test role allowlist (exact commands only; use Read/Glob/Grep to explore files)"
 }
 
 check_bash_reviewer() {
-  local c=$1
-  case "$c" in
-    "git rev-parse HEAD"|"git rev-parse --short HEAD"|"git describe --tags --exact-match HEAD"|"git hash-object spec/REVIEW_CHECKLIST.md"|"date"|"date +%F") return 0 ;;
-    "ls spec"*|"ls experiments/spec-reviews"*)
-      local toks; read -ra toks <<<"$c"
-      all_paths_under REVIEWER_READ "${toks[@]:1}" || deny "ls: only spec/ or experiments/spec-reviews/"
-      return 0 ;;
+  case "$1" in
+    "git rev-parse HEAD"|"git rev-parse --short HEAD"|"git describe --tags --exact-match HEAD"|\
+    "git hash-object spec/REVIEW_CHECKLIST.md"|"date"|"date +%F"|\
+    "ls spec"|"ls spec/requirements"|"ls experiments/spec-reviews") return 0 ;;
   esac
-  deny "command not on the spec-reviewer allowlist (git rev-parse HEAD, git describe --tags --exact-match HEAD, git hash-object spec/REVIEW_CHECKLIST.md, ls spec, date)"
+  deny "command not on the spec-reviewer allowlist (exact commands only; use Read/Glob/Grep to explore files)"
 }
 
 check_bash() {
@@ -234,6 +211,8 @@ check_bash() {
       case "$c" in
         *';'*|*'&'*|*'|'*|*'`'*|*'$('*|*'>'*|*'<'*|*$'\n'*) deny "compound commands, pipes, redirects and substitutions are not allowed for $ROLE" ;;
       esac
+      # second layer: no '..' path segment anywhere in the command
+      [[ "$c" =~ (^|[[:space:]/=])\.\.($|[[:space:]/]) ]] && deny "'..' path segments are not allowed for $ROLE"
       [ "$ROLE" = test ] && check_bash_test "$c"
       [ "$ROLE" = spec-reviewer ] && check_bash_reviewer "$c"
       ;;

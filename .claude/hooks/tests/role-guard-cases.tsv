@@ -21,7 +21,7 @@ deny	test	Bash	command	./mvnw -pl blackbox-tests verify && cat x	compound
 deny	test	Bash	command	./mvnw verify	full reactor
 deny	test	Bash	command	./mvnw -pl blackbox-tests exec:exec	plugin goal
 allow	test	Bash	command	./mvnw -B -ntp -pl blackbox-tests verify	allowed build
-allow	test	Bash	command	git diff -- blackbox-tests/	diff own module
+allow	test	Bash	command	git diff -- blackbox-tests	diff own module (exact command)
 deny	test	Bash	command	git diff	diff everything
 deny	test	Bash	command	curl https://raw.githubusercontent.com/aleks-oracle/ai-sdlc-lab/main/pom.xml	network read of repo
 deny	test	WebFetch	url	https://github.com/aleks-oracle/ai-sdlc-lab	WebFetch tool
@@ -59,3 +59,25 @@ deny	auditor	Write	file_path	experiments/spec-reviews/x.md	auditor writes spec r
 deny	auditor	Bash	command	echo x > ledger-core/a.txt	auditor redirect
 allow	auditor	Bash	command	./mvnw verify 2>&1	auditor runs build
 deny	auditor	Bash	command	git commit -m x	auditor git write
+# --- 2026-11-13: exact-command allowlists for test and spec-reviewer (EXP-001 R09, R10, T20) ---
+deny	spec-reviewer	Bash	command	ls spec; cat ledger-core/src/main/X.java	R09 allowed prefix + compound
+deny	spec-reviewer	Bash	command	ls spec/*/../../ledger-core/src/main	R10 glob expands after path check
+deny	spec-reviewer	Bash	command	ls spec/requirements/../../ledger-core	plain .. traversal
+deny	spec-reviewer	Bash	command	ls spec ledger-core/src/main	extra relative argument
+deny	spec-reviewer	Bash	command	ls spec /ledger-core/src/main	extra absolute argument
+deny	spec-reviewer	Bash	command	ls spec -R	extra flag
+deny	spec-reviewer	Bash	command	ls spec/openapi	not on exact list (use Glob)
+allow	spec-reviewer	Bash	command	ls spec	exact
+allow	spec-reviewer	Bash	command	ls spec/requirements	exact
+allow	spec-reviewer	Bash	command	ls experiments/spec-reviews	exact
+deny	test	Bash	command	ls blackbox-tests/*/../../ledger-app/src/main	T20 glob expands after path check
+deny	test	Bash	command	git diff -- blackbox-tests/*/../../ledger-core/src/main	glob leaks uncommitted code
+deny	test	Bash	command	git add blackbox-tests/*/../../ledger-core	glob stages dev files
+deny	test	Bash	command	git commit -m x -a --dry-run -v	dry-run prints all diffs
+deny	test	Bash	command	git commit -m "x" -a	commits dev changes
+deny	test	Bash	command	git commit -m "x" -- ledger-core	commit with paths
+allow	test	Bash	command	git commit -m "Add REQ-TXN-001 tests ... more later"	plain commit, ellipsis ok
+allow	test	Bash	command	git add blackbox-tests	exact
+allow	test	Bash	command	ls blackbox-tests	exact
+deny	test	Bash	command	ls blackbox-tests/src	not on exact list (use Glob)
+deny	test	Bash	command	./mvnw -pl blackbox-tests -Dtest=* test	glob in -D value
