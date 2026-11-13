@@ -37,3 +37,6 @@ target/
 
 # Environment files may hold secrets
 .env*
+
+# Project brief: kept locally by the owner, not published
+PROJECT_BRIEF.md
