@@ -22,3 +22,21 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# --- ai-sdlc-lab additions ---
+# Build output
+target/
+
+# IDE (IntelliJ) and OS files
+.idea/
+*.iml
+.DS_Store
+
+# Claude Code: personal settings stay local; shared .claude/settings.json and .claude/agents/ are tracked
+.claude/settings.local.json
+
+# Environment files may hold secrets
+.env*
+
+# Project brief: kept locally by the owner, not published
+PROJECT_BRIEF.md

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  blackbox-tests: tests derived ONLY from spec/ and the OpenAPI contract; talks to the app over HTTP.
+  Must not depend on ledger-core or ledger-app (root enforcer rule "no-sut-modules") and has no Spring
+  (rule "no-spring"). How it reaches the running app is decided in Stage 2 (docs/adr/0003).
+  REST Assured and Testcontainers are added in Stage 2, after a Java 25 check.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.aleks-oracle</groupId>
+        <artifactId>ledger-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>blackbox-tests</artifactId>
+    <name>ai-sdlc-lab :: blackbox-tests</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
