@@ -79,3 +79,39 @@ Newest entry at the bottom. Each entry: done, broke, decisions (with reasons), n
 
 **Next**
 - Owner review of PR #1; Step 3 CI proposal; run EXP-001.
+
+---
+
+## 2026-11-13 (continued; written at session end 2026-11-18) — checklist v2, role-guard fix
+
+**Done**
+- Compared the owner's `REVIEW_CHECKLIST_UNIFIED.md` with v1. UNIFIED fixed all six process gaps raised earlier and
+  added useful criteria (units/formats, self-contained, absolutes, references by ID), but renumbered 18 of 25 IDs
+  (7 template references would have pointed to the wrong criterion), had two criteria our setup cannot check
+  (levels; version history vs the reviewer's Bash allowlist), overlaps, and escape wording.
+- Wrote the merged v2 (`REVIEW_CHECKLIST_FIXED.md` in the repo root, because agents cannot write in `spec/`); the
+  owner moved it to `spec/REVIEW_CHECKLIST.md`. RC-01..RC-25 keep their IDs, RC-26..RC-33 are new; change list in
+  section 8 of the file.
+- Spec-reviewer may now run `git describe --tags --exact-match HEAD` (needed for RC-33).
+- Owner asked whether `"ls spec"*` could be abused. Metacharacters were already rejected, and extra arguments were
+  checked one by one. But a **glob before `..`** passed the path check and was expanded by the shell afterwards
+  (`ls spec/*/../../ledger-core/src/main` → allowed). The test role had the same hole in `ls`, `git diff`
+  (leaks content of uncommitted code) and `git add`, and `git commit -m` did not check its arguments at all
+  (`-a --dry-run -v` prints every diff). Fix approved and applied: exact-command allowlists for test and
+  spec-reviewer, one strict commit form, no `*` in mvnw `-D` values, `..` segments denied as a second layer.
+  Hook unit check 81/81; the same cases fail 10/81 against the old hook.
+- EXP-001: added R09 (compound command), R10 and T20 (glob traversal; now expected "blocked by hook").
+- Pushed to PR #1 (17 commits, head `e817b06`), not merged. `./mvnw compile` green.
+
+**Broke / surprises**
+- The glob gap is a good example of why the hook unit check is weak evidence: 58/58 passed while a simple bypass
+  existed. Test cases written by the same agent that wrote the guard miss the same things. EXP-001 must also include
+  attempts designed by someone else (owner, or a separate session).
+
+**Decisions**
+- Checklist IDs are stable; new criteria get the next free number (owner approved via v2).
+- Test and spec-reviewer Bash = exact commands only; exploration goes through the path-checked Read/Glob/Grep tools.
+- The owner controls push and merge timing: commit locally, push only on instruction.
+
+**Next**
+- Owner reviews PR #1. Then Step 3 CI proposal, then EXP-001. See "Resume here" in `PLAN.md`.
